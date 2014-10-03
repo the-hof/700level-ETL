@@ -25,6 +25,7 @@ if ('development' == app.get('env')) {
 
 //Contact API routes
 app.get('/v1/extract', extract.getSolr);
+app.get('/v1/restore', extract.putSolr);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
