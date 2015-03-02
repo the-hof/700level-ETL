@@ -51,30 +51,35 @@ function stringifyPosts(key, value) {
 
 function writePostToSolr(data, i, solr_client, res) {
     solrdoc = new helios.document();
-    console.log(data[i]);
-    solrdoc.addField('id', data[i].id);
-    solrdoc.addField('forum', data[i].forum);
-    solrdoc.addField('forum_name', data[i].forum_name);
-    solrdoc.addField('thread', data[i].thread);
-    solrdoc.addField('thread_name', data[i].thread_name);
-    solrdoc.addField('thread_id', data[i].thread_id);
-    solrdoc.addField('post', data[i].post);
-    solrdoc.addField('ip_address', data[i].ip_address);
-    solrdoc.addField('author', data[i].author);
-    solrdoc.addField('thread_author', data[i].thread_author);
-    solrdoc.addField('last_modified', data[i].last_modified);
+    if (typeof data[i] != 'undefined') {
+        console.log(data[i]);
+        solrdoc.addField('id', data[i].id);
+        solrdoc.addField('forum', data[i].forum);
+        solrdoc.addField('forum_name', data[i].forum_name);
+        solrdoc.addField('thread', data[i].thread);
+        solrdoc.addField('thread_name', data[i].thread_name);
+        solrdoc.addField('thread_id', data[i].thread_id);
+        solrdoc.addField('post', data[i].post);
+        solrdoc.addField('ip_address', data[i].ip_address);
+        solrdoc.addField('author', data[i].author);
+        solrdoc.addField('thread_author', data[i].thread_author);
+        solrdoc.addField('last_modified', data[i].last_modified);
 
-    solr_client.addDoc(solrdoc, true, function (err) {
-        if (err) {
-            console.log(err);
-        } else {
-            if (i == data.length) {
-                res.end(wrapResponseInCallback(req.query.callback, data));
+        solr_client.addDoc(solrdoc, true, function (err) {
+            if (err) {
+                console.log(err);
             } else {
-                writePostToSolr(data, i+1, solr_client, res);
+                if (i == data.length) {
+                    res.end(wrapResponseInCallback(req.query.callback, data));
+                } else {
+                    writePostToSolr(data, i + 1, solr_client, res);
+                }
             }
-        }
-    });
+        })
+    }
+    else {
+        res.end()
+    }
 }
 
 

@@ -31,4 +31,4 @@ node_modules
 config.js
 
 # testing files
-backup.json
+backup*.json
