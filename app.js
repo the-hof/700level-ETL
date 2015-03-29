@@ -27,6 +27,8 @@ if ('development' == app.get('env')) {
 app.get('/v1/extract', extract.getSolr);
 app.get('/v1/restore', extract.putSolr);
 
+app.get('/v1/users/extract', extract.getUserSolr);
+
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
 });

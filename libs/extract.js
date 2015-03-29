@@ -42,6 +42,14 @@ function solrResponseToPostList(res) {
     return postList;
 }
 
+function solrResponseToUserList(res) {
+    var userList = res.response.docs;
+    for (var i = 0; i < userList.length; i++) {
+
+    }
+    return userList;
+}
+
 function stringifyPosts(key, value) {
     switch(key) {
         case '_version_': return undefined; break;
@@ -86,6 +94,39 @@ function writePostToSolr(data, i, solr_client, res) {
 ////////////////////////////////////////////////////////
 // exports
 ////////////////////////////////////////////////////////
+exports.getUserSolr = function(req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    var filename = getQueryTermFromQueryString(req.query.filename);
+    solr_client = new helios.client(config.user_connection);
+
+    var pageSize = 1000000;
+
+    solr_client.select({
+        sort: 'username asc',
+        wt: 'json',
+        rows: pageSize,
+        q: '*:*'
+    }, function (err, solr_res) {
+        if (err) throw err;
+        var userList = solrResponseToUserList(JSON.parse(solr_res));
+
+        if (!filename) {
+            res.end(wrapResponseInCallback(req.query.callback, JSON.stringify(userList, stringifyPosts, 2)));
+        } else {
+            fs.writeFile(filename, JSON.stringify(userList, stringifyPosts, 2), function (err) {
+                var status_message = "saved as " + filename;
+                if (err) {
+                    status_message = "error = " + err.message;
+                }
+                status = {
+                    "description": status_message
+                };
+                res.end(wrapResponseInCallback(req.query.callback, JSON.stringify(status, stringifyPosts,2)));
+            });
+        }
+    });
+};
+
 exports.getSolr = function(req, res) {
     res.setHeader('Content-Type', 'application/json');
     var start = getQueryTermFromQueryString(req.query.start);
@@ -120,7 +161,7 @@ exports.getSolr = function(req, res) {
                 }
                 status = {
                     "description": status_message
-                }
+                };
                 res.end(wrapResponseInCallback(req.query.callback, JSON.stringify(status, stringifyPosts,2)));
             });
         }
