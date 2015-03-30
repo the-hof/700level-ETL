@@ -88,7 +88,36 @@ function writePostToSolr(data, i, solr_client, res) {
     else {
         res.end()
     }
-}
+};
+
+function writeUserToSolr(data, i, solr_client, res) {
+  solrdoc = new helios.document();
+    if (typeof data[i] != 'undefined') {
+        console.log(data[i]);
+        solrdoc.addField('id', data[i].id);
+        solrdoc.addField('username', data[i].username);
+        solrdoc.addField('email_address', data[i].email_address);
+        solrdoc.addField('role', data[i].role);
+        solrdoc.addField('salt', data[i].salt);
+        solrdoc.addField('admin_datatype', data[i].admin_datatype);
+        solrdoc.addField('hashed_password', data[i].hashed_password);
+
+        solr_client.addDoc(solrdoc, true, function (err) {
+            if (err) {
+                console.log(err);
+            } else {
+                if (i == data.length) {
+                    res.end(wrapResponseInCallback(req.query.callback, data));
+                } else {
+                    writeUserToSolr(data, i + 1, solr_client, res);
+                }
+            }
+        })
+    }
+    else {
+        res.end()
+    }
+};
 
 
 ////////////////////////////////////////////////////////
@@ -183,5 +212,22 @@ exports.putSolr = function(req, res) {
 
         data = JSON.parse(data);
         writePostToSolr(data, 0, solr_client, res);
+    });
+};
+
+exports.putUserSolr = function(req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    var filename = getQueryTermFromQueryString(req.query.filename);
+
+    solr_client = new helios.client(config.user_connection);
+
+    fs.readFile(filename, 'utf8', function (err, data) {
+        if (err) {
+            console.log('Error: ' + err);
+            return;
+        }
+
+        data = JSON.parse(data);
+        writeUserToSolr(data, 0, solr_client, res);
     });
 };
